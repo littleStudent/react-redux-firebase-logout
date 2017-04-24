@@ -4,109 +4,76 @@
  * This is the first thing users see of our App, at the '/' route
  */
 
-import { makeSelectError, makeSelectLoading, makeSelectRepos } from 'containers/App/selectors';
+import {
+  makeSelectError,
+  makeSelectLoading,
+  makeSelectRepos,
+} from "containers/App/selectors";
 
-import AtPrefix from './AtPrefix';
-import CenteredSection from './CenteredSection';
-import Form from './Form';
-import { FormattedMessage } from 'react-intl';
-import H2 from 'components/H2';
-import Helmet from 'react-helmet';
-import Input from './Input';
-import React from 'react';
-import ReposList from 'components/ReposList';
-import Section from './Section';
-import { changeUsername } from './actions';
-import { connect } from 'react-redux';
-import { createStructuredSelector } from 'reselect';
-import { loadRepos } from '../App/actions';
-import { makeSelectUsername } from './selectors';
-import messages from './messages';
+import AtPrefix from "./AtPrefix";
+import CenteredSection from "./CenteredSection";
+import Form from "./Form";
+import { FormattedMessage } from "react-intl";
+import H2 from "components/H2";
+import Helmet from "react-helmet";
+import Input from "./Input";
+import React from "react";
+import ReposList from "components/ReposList";
+import Section from "./Section";
+import { changeUsername } from "./actions";
+import { connect } from "react-redux";
+import { createStructuredSelector } from "reselect";
+import { firebaseConnect } from "react-redux-firebase";
+import { loadRepos } from "../App/actions";
+import { makeSelectUsername } from "./selectors";
+import messages from "./messages";
 
-export class HomePage extends React.PureComponent { // eslint-disable-line react/prefer-stateless-function
+@firebaseConnect()
+export class HomePage extends React.PureComponent {
+  // eslint-disable-line react/prefer-stateless-function
   /**
    * when initial state username is not null, submit the form to load repos
    */
   componentDidMount() {
-    if (this.props.username && this.props.username.trim().length > 0) {
-      this.props.onSubmitForm();
-    }
   }
 
+  handleLogin = loginData => {
+    this.props.firebase.login(loginData);
+  };
+
+  providerLogin = provider => this.handleLogin({ provider });
+
   render() {
-    const { loading, error, repos } = this.props;
-    const reposListProps = {
-      loading,
-      error,
-      repos,
-    };
 
     return (
-      <article>
-        <Helmet
-          title="Home Page"
-          meta={[
-            { name: 'description', content: 'A React.js Boilerplate application homepage' },
-          ]}
-        />
-        <div>
-          <CenteredSection>
-            <H2>
-              <FormattedMessage {...messages.startProjectHeader} />
-            </H2>
-            <p>
-              <FormattedMessage {...messages.startProjectMessage} />
-            </p>
-          </CenteredSection>
-          <Section>
-            <H2>
-              <FormattedMessage {...messages.trymeHeader} />
-            </H2>
-            <Form onSubmit={this.props.onSubmitForm}>
-              <label htmlFor="username">
-                <FormattedMessage {...messages.trymeMessage} />
-                <AtPrefix>
-                  <FormattedMessage {...messages.trymeAtPrefix} />
-                </AtPrefix>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="mxstbr"
-                  value={this.props.username}
-                  onChange={this.props.onChangeUsername}
-                />
-              </label>
-            </Form>
-            <ReposList {...reposListProps} />
-          </Section>
-        </div>
-      </article>
+      <button
+        className="is-medium"
+        onClick={() => this.providerLogin("google")}
+      >
+        <span className="icon">
+          <i className="fa fa-google" />
+        </span>
+        <span>sign in with Google</span>
+      </button>
     );
   }
 }
 
 HomePage.propTypes = {
-  loading: React.PropTypes.bool,
-  error: React.PropTypes.oneOfType([
-    React.PropTypes.object,
-    React.PropTypes.bool,
-  ]),
-  repos: React.PropTypes.oneOfType([
-    React.PropTypes.array,
-    React.PropTypes.bool,
-  ]),
-  onSubmitForm: React.PropTypes.func,
-  username: React.PropTypes.string,
-  onChangeUsername: React.PropTypes.func,
+  firebase: React.PropTypes.shape({
+    login: React.PropTypes.func.isRequired,
+    auth: React.PropTypes.func.isRequired,
+  }),
+  authError: React.PropTypes.shape({
+    message: React.PropTypes.string, // eslint-disable-line react/no-unused-prop-types
+  }),
+  dispatch: React.PropTypes.func.isRequired,
+  auth: React.PropTypes.object,
 };
 
-export function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch) {
   return {
-    onChangeUsername: (evt) => dispatch(changeUsername(evt.target.value)),
-    onSubmitForm: (evt) => {
-      if (evt !== undefined && evt.preventDefault) evt.preventDefault();
-      dispatch(loadRepos());
-    },
+    dispatch,
   };
 }
 

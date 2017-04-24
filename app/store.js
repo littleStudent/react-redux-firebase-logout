@@ -5,6 +5,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import { fromJS } from 'immutable';
 import { routerMiddleware } from 'react-router-redux';
+import { reactReduxFirebase } from "react-redux-firebase";
 import createSagaMiddleware from 'redux-saga';
 import createReducer from './reducers';
 
@@ -23,6 +24,15 @@ export default function configureStore(initialState = {}, history) {
     applyMiddleware(...middlewares),
   ];
 
+  const config = {
+    apiKey: "AIzaSyAq6taRRT8pSPYLr-2dJ2ijx2fG1uVWd5w",
+    authDomain: "react-redux-firebase-logout.firebaseapp.com",
+    databaseURL: "https://react-redux-firebase-logout.firebaseio.com",
+    projectId: "react-redux-firebase-logout",
+    storageBucket: "react-redux-firebase-logout.appspot.com",
+    messagingSenderId: "507280857623"
+  };
+
   // If Redux DevTools Extension is installed use it, otherwise use Redux compose
   /* eslint-disable no-underscore-dangle */
   const composeEnhancers =
@@ -35,7 +45,7 @@ export default function configureStore(initialState = {}, history) {
   const store = createStore(
     createReducer(),
     fromJS(initialState),
-    composeEnhancers(...enhancers)
+    composeEnhancers(reactReduxFirebase(config, { userProfile: "users", enableLogging: false }),...enhancers)
   );
 
   // Extensions
